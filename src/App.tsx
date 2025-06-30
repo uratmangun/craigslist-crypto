@@ -7,11 +7,12 @@ import { ListingCard } from './components/ListingCard';
 import { ListingDetail } from './components/ListingDetail';
 import { listings } from './data/listings';
 
-// Supported networks
+// Only Base Sepolia is supported
 const SUPPORTED_NETWORKS = {
-  8453: { name: 'Base', color: 'blue' },
   84532: { name: 'Base Sepolia', color: 'green' }
 };
+
+const BASE_SEPOLIA_CHAIN_ID = 84532;
 
 function HomePage() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
@@ -76,8 +77,8 @@ function HomePage() {
           console.log('Detected network ID:', networkId);
           setCurrentNetwork(networkId);
           
-          // Check if network is supported
-          if (networkId && !SUPPORTED_NETWORKS[networkId as keyof typeof SUPPORTED_NETWORKS]) {
+          // Check if network is Base Sepolia
+          if (networkId && networkId !== BASE_SEPOLIA_CHAIN_ID) {
             setShowNetworkWarning(true);
           } else {
             setShowNetworkWarning(false);
@@ -101,7 +102,7 @@ function HomePage() {
           console.log('Chain changed to:', networkId);
           setCurrentNetwork(networkId);
           
-          if (!SUPPORTED_NETWORKS[networkId as keyof typeof SUPPORTED_NETWORKS]) {
+          if (networkId !== BASE_SEPOLIA_CHAIN_ID) {
             setShowNetworkWarning(true);
           } else {
             setShowNetworkWarning(false);
@@ -144,11 +145,11 @@ function HomePage() {
     setShowDropdown(!showDropdown);
   };
 
-  const switchToNetwork = async (chainId: number) => {
+  const switchToBaseSepolia = async () => {
     if (primaryWallet?.connector?.supportsNetworkSwitching()) {
       try {
         setIsNetworkLoading(true);
-        await primaryWallet.switchNetwork(chainId);
+        await primaryWallet.switchNetwork(BASE_SEPOLIA_CHAIN_ID);
         
         // Force network check after a short delay
         setTimeout(async () => {
@@ -156,7 +157,7 @@ function HomePage() {
             const networkId = await getNetwork(primaryWallet.connector);
             setCurrentNetwork(networkId);
             
-            if (!SUPPORTED_NETWORKS[networkId as keyof typeof SUPPORTED_NETWORKS]) {
+            if (networkId !== BASE_SEPOLIA_CHAIN_ID) {
               setShowNetworkWarning(true);
             } else {
               setShowNetworkWarning(false);
@@ -168,14 +169,14 @@ function HomePage() {
           }
         }, 1000);
         
-        console.log(`Successfully switched to network ${chainId}`);
+        console.log(`Successfully switched to Base Sepolia`);
       } catch (error) {
         console.error('Error switching network:', error);
         alert('Failed to switch network. Please try again or switch manually in your wallet.');
         setIsNetworkLoading(false);
       }
     } else {
-      alert('Network switching not supported by this wallet. Please switch manually in your wallet.');
+      alert('Network switching not supported by this wallet. Please switch manually to Base Sepolia in your wallet.');
     }
   };
 
@@ -214,20 +215,13 @@ function HomePage() {
                   Unsupported Network
                 </p>
                 <p className="text-xs text-red-600">
-                  Please switch to Base or Base Sepolia to use this marketplace
+                  Please switch to Base Sepolia to use this marketplace
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => switchToNetwork(8453)}
-                disabled={isNetworkLoading}
-                className="bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isNetworkLoading ? 'Switching...' : 'Switch to Base'}
-              </button>
-              <button
-                onClick={() => switchToNetwork(84532)}
+                onClick={switchToBaseSepolia}
                 disabled={isNetworkLoading}
                 className="bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -308,16 +302,16 @@ function HomePage() {
                               <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></div>
                             ) : (
                               <div className={`w-2 h-2 rounded-full ${
-                                SUPPORTED_NETWORKS[currentNetwork as keyof typeof SUPPORTED_NETWORKS] 
-                                  ? `bg-${networkInfo.color}-500` 
+                                currentNetwork === BASE_SEPOLIA_CHAIN_ID
+                                  ? 'bg-green-500' 
                                   : 'bg-red-500'
                               }`}></div>
                             )}
                             <span className={`text-xs font-medium ${
                               isNetworkLoading 
                                 ? 'text-gray-500' 
-                                : SUPPORTED_NETWORKS[currentNetwork as keyof typeof SUPPORTED_NETWORKS]
-                                  ? `text-${networkInfo.color}-700`
+                                : currentNetwork === BASE_SEPOLIA_CHAIN_ID
+                                  ? 'text-green-700'
                                   : 'text-red-700'
                             }`}>
                               {isNetworkLoading ? 'Detecting...' : networkInfo.name}
@@ -326,25 +320,16 @@ function HomePage() {
                         </div>
                         
                         {/* Network Switching */}
-                        {currentNetwork && !SUPPORTED_NETWORKS[currentNetwork as keyof typeof SUPPORTED_NETWORKS] && (
+                        {currentNetwork && currentNetwork !== BASE_SEPOLIA_CHAIN_ID && (
                           <div className="mt-2 pt-2 border-t border-slate-100">
-                            <p className="text-xs text-red-600 mb-2">Switch to supported network:</p>
-                            <div className="flex space-x-1">
-                              <button
-                                onClick={() => switchToNetwork(8453)}
-                                disabled={isNetworkLoading}
-                                className="flex-1 bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-medium hover:bg-blue-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                {isNetworkLoading ? 'Switching...' : 'Base'}
-                              </button>
-                              <button
-                                onClick={() => switchToNetwork(84532)}
-                                disabled={isNetworkLoading}
-                                className="flex-1 bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-medium hover:bg-green-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                {isNetworkLoading ? 'Switching...' : 'Base Sepolia'}
-                              </button>
-                            </div>
+                            <p className="text-xs text-red-600 mb-2">Switch to Base Sepolia:</p>
+                            <button
+                              onClick={switchToBaseSepolia}
+                              disabled={isNetworkLoading}
+                              className="w-full bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-medium hover:bg-green-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {isNetworkLoading ? 'Switching...' : 'Switch to Base Sepolia'}
+                            </button>
                           </div>
                         )}
                       </div>
@@ -401,40 +386,31 @@ function HomePage() {
                     <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></div>
                   ) : (
                     <div className={`w-2 h-2 rounded-full ${
-                      SUPPORTED_NETWORKS[currentNetwork as keyof typeof SUPPORTED_NETWORKS] 
-                        ? `bg-${networkInfo.color}-500` 
+                      currentNetwork === BASE_SEPOLIA_CHAIN_ID
+                        ? 'bg-green-500' 
                         : 'bg-red-500'
                     }`}></div>
                   )}
                   <span className={`font-medium ${
                     isNetworkLoading 
                       ? 'text-gray-500' 
-                      : SUPPORTED_NETWORKS[currentNetwork as keyof typeof SUPPORTED_NETWORKS]
-                        ? `text-${networkInfo.color}-700`
+                      : currentNetwork === BASE_SEPOLIA_CHAIN_ID
+                        ? 'text-green-700'
                         : 'text-red-700'
                   }`}>
                     {isNetworkLoading ? 'Detecting...' : networkInfo.name}
                   </span>
                 </div>
                 
-                {/* Quick Network Switch Buttons */}
-                {!isNetworkLoading && currentNetwork && !SUPPORTED_NETWORKS[currentNetwork as keyof typeof SUPPORTED_NETWORKS] && (
-                  <div className="flex space-x-1 ml-2">
-                    <button
-                      onClick={() => switchToNetwork(8453)}
-                      disabled={isNetworkLoading}
-                      className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium hover:bg-blue-200 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Switch to Base
-                    </button>
-                    <button
-                      onClick={() => switchToNetwork(84532)}
-                      disabled={isNetworkLoading}
-                      className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium hover:bg-green-200 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Switch to Base Sepolia
-                    </button>
-                  </div>
+                {/* Quick Network Switch Button */}
+                {!isNetworkLoading && currentNetwork && currentNetwork !== BASE_SEPOLIA_CHAIN_ID && (
+                  <button
+                    onClick={switchToBaseSepolia}
+                    disabled={isNetworkLoading}
+                    className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium hover:bg-green-200 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed ml-2"
+                  >
+                    Switch to Base Sepolia
+                  </button>
                 )}
               </div>
             )}

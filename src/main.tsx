@@ -15,6 +15,26 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         settings={{
           environmentId: ENVIRONMENT_ID,
           walletConnectors: [EthereumWalletConnectors],
+          // Set Base Sepolia as the default chain
+          defaultChainId: 84532,
+          // Only allow Base Sepolia
+          supportedChains: [
+            {
+              chainId: 84532,
+              name: "Base Sepolia",
+              rpcUrl: "https://sepolia.base.org",
+              nativeCurrency: {
+                name: "Ethereum",
+                symbol: "ETH",
+                decimals: 18,
+              },
+              blockExplorerUrl: "https://sepolia-explorer.base.org",
+            }
+          ],
+          // Automatically switch to the correct chain
+          autoConnectWallet: false,
+          // Show network switching UI
+          showNetworkSwitchingUI: true,
         }}
       >
         <App />
